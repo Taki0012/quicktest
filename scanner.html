@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+</head>
+<body>
+    <h2>QR Code Scanner</h2>
+    <video id="video" width="300" height="200" autoplay></video>
+    <canvas id="canvas" hidden></canvas>
+    <p id="output"></p>
+    <button onclick="window.location.href='index.html'">Go to Generator</button>
+
+    <script>
+        const video = document.getElementById("video");
+        const canvas = document.getElementById("canvas");
+        const context = canvas.getContext("2d");
+        const output = document.getElementById("output");
+
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then((stream) => { video.srcObject = stream; })
+            .catch((err) => { console.error("Camera access error: ", err); });
+
+        function scanQRCode() {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const qrCode = jsQR(imageData.data, imageData.width, imageData.height);
+
+            if (qrCode) {
+                const data = JSON.parse(qrCode.data);
+                output.innerHTML = `Name: ${data.name}, Credit: ${data.credit}`;
+            }
+            requestAnimationFrame(scanQRCode);
+        }
+
+        video.addEventListener("loadeddata", scanQRCode);
+    </script>
+</body>
+</html>
